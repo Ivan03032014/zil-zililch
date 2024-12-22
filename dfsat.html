@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Змійка</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #000;
+            background-color: #222;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            font-size: 20px;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Рахунок: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20; // Розмір одного блоку
+        const canvasSize = 400; // Розміри канвасу
+
+        let snake = [
+            { x: 80, y: 100 },
+            { x: 60, y: 100 },
+            { x: 40, y: 100 }
+        ]; // Початкова позиція змійки
+
+        let food = { x: 200, y: 200 }; // Початкова позиція їжі
+        let dx = gridSize; // Напрямок руху змійки по осі X
+        let dy = 0; // Напрямок руху змійки по осі Y
+        let score = 0;
+        let gameInterval;
+
+        // Функція для малювання змійки
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                ctx.fillStyle = index === 0 ? '#4CAF50' : '#66BB6A'; // Голова змійки зеленіша
+                ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+            });
+        }
+
+        // Функція для малювання їжі
+        function drawFood() {
+            ctx.fillStyle = '#FF5733'; // Колір їжі
+            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+        }
+
+        // Функція для оновлення позиції змійки
+        function updateSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head); // Додаємо нову голову змійки
+
+            if (head.x === food.x && head.y === food.y) {
+                score += 10; // Якщо змійка з'їла їжу
+                document.getElementById('score').innerText = `Рахунок: ${score}`;
+                spawnFood(); // Створюємо нову їжу
+            } else {
+                snake.pop(); // Якщо їжа не з'їдена, видаляємо хвіст змійки
+            }
+        }
+
+        // Функція для перевірки колізій
+        function checkCollisions() {
+            const head = snake[0];
+            // Перевірка на зіткнення з кордонами
+            if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize) {
+                return true;
+            }
+            // Перевірка на зіткнення з тілом змійки
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Функція для створення нової їжі в випадковому місці
+        function spawnFood() {
+            food.x = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+            food.y = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+        }
+
+        // Основна функція гри
+        function gameLoop() {
+            if (checkCollisions()) {
+                clearInterval(gameInterval); // Завершуємо гру при зіткненні
+                alert('Гра завершена! Ваш рахунок: ' + score);
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаємо екран
+            updateSnake(); // Оновлюємо змійку
+            drawSnake(); // Малюємо змійку
+            drawFood(); // Малюємо їжу
+        }
+
+        // Функція для обробки натискання клавіші
+        function changeDirection(event) {
+            if (event.key === 'ArrowUp' && dy === 0) {
+                dx = 0;
+                dy = -gridSize;
+            } else if (event.key === 'ArrowDown' && dy === 0) {
+                dx = 0;
+                dy = gridSize;
+            } else if (event.key === 'ArrowLeft' && dx === 0) {
+                dx = -gridSize;
+                dy = 0;
+            } else if (event.key === 'ArrowRight' && dx === 0) {
+                dx = gridSize;
+                dy = 0;
+            }
+        }
+
+        // Початок гри
+        function startGame() {
+            document.addEventListener('keydown', changeDirection); // Додаємо слухач для клавіш
+            spawnFood(); // Створюємо початкову їжу
+            gameInterval = setInterval(gameLoop, 100); // Запускаємо гру
+        }
+
+        startGame(); // Запускаємо гру при завантаженні сторінки
+    </script>
+</body>
+</html>
